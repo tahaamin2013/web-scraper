@@ -3,6 +3,7 @@ import React from "react";
 import puppeteer from "puppeteer";
 const cheerio = require("cheerio");
 let counter = 0;
+let booksArr:any [] = [];
 interface PageProps {
   searchParams: any;
 }
@@ -19,6 +20,7 @@ const Page: React.FC<PageProps> = ({ searchParams }) => {
 };
 export default Page;
 const runScraper = async () => {
+  booksArr = [];
   const browser = await puppeteer.launch({
     headless: false,
   });
@@ -34,8 +36,22 @@ const runScraper = async () => {
   });
   await wait(3000);
   await clickCategory(page);
-  await wait(3000);
+  while (true) {
+    await wait(3000);
   await scrapeData(page);
+  await wait(3000);
+  if(!await nextPageBoolean(page)) {
+    break;
+  }
+  await wait(3000);
+  await autoScroll(page);
+  await wait(3000);
+  await clickNext(page);
+  await scrapeData(page);
+  }
+  console.log('Total number of books scraped:',booksArr.length);
+  console.log('Done')
+  await browser.close()
 };
 
 const wait = (ms: any) => {
@@ -78,7 +94,6 @@ const scrapeData = async (page: any) => {
     return;
   }
   const liTags = $("ol.row li");
-  let booksArr:any [] = [];
   const baseUrl = "http://books.toscrape.com/";
   liTags.each((i: any, el: any) => {
     let imageUrl = $(el).find("img").attr("src");
@@ -93,6 +108,7 @@ const scrapeData = async (page: any) => {
     booksArr.push(book); // Use push method to add elements to the array
     console.log({ imageUrl }, " - ", { starRating });
   });
+  counter = 0;
   console.log(booksArr)
 };
 
@@ -112,8 +128,36 @@ const autoScroll = async (page: any) => {
       return;
     }
 
+    
+    counter = 0;
     await page.evaluate((selector:any) => {
-      const element = document.querySelector(selector)
-      
-    })
+      const element = document.querySelector(selector);
+      element.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }, selector)
+  }
+
+
+  const clickNext = async (page: any) => {
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+      page.click('li.next'),
+    ]);
+  };
+  
+
+  const nextPageBoolean = async (page:any) =>{
+    const $= cheerio.load(page.content())
+    if(!await page.$('li.next')) {
+      await wait(2000);
+      if (counter < 3) {
+        counter++;
+        console.log(`can't find the scrapeData selector... Running retry number: ${counter}`);
+        await autoScroll(page);
+        } else {
+          counter = 0;
+          console.log("Unable to find scrapeData selector... Moving on.");
+       }
+        return;
+      }
+      return true;
   }
