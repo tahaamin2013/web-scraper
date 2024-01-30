@@ -1,10 +1,10 @@
-import RunScraperButton from '@/components/RunScraperButton';
-import React from 'react';
-import puppeteer from 'puppeteer';
-const cheerio = require('cheerio')
-let counter  =  0;
+import RunScraperButton from "@/components/RunScraperButton";
+import React from "react";
+import puppeteer from "puppeteer";
+const cheerio = require("cheerio");
+let counter = 0;
 interface PageProps {
-  searchParams:any
+  searchParams: any;
 }
 const Page: React.FC<PageProps> = ({ searchParams }) => {
   if (searchParams.runScraperButton) {
@@ -12,7 +12,9 @@ const Page: React.FC<PageProps> = ({ searchParams }) => {
     runScraper();
   }
   return (
-    <div className='flex min-h-screen flex-col items-center justify-between p-24'><RunScraperButton /></div>
+    <div className="flex min-h-screen flex-col items-center justify-between p-24">
+      <RunScraperButton />
+    </div>
   );
 };
 export default Page;
@@ -27,55 +29,91 @@ const runScraper = async () => {
     height: 600,
   });
   const endpoint = "https://books.toscrape.com/";
-  await page.goto(endpoint, { 
+  await page.goto(endpoint, {
     waitUntil: "domcontentloaded",
   });
-  await wait(1000);
+  await wait(3000);
   await clickCategory(page);
-  await wait(1000);
+  await wait(3000);
   await scrapeData(page);
 };
 
-const wait = (ms: any) => { return new Promise((resolve) => setTimeout(resolve, ms)); }
+const wait = (ms: any) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
 
-const clickCategory = async (page:any) => {
-  const catAttr = 'catalogue/category/books/mystery_3/index.html'
+const clickCategory = async (page: any) => {
+  const catAttr = "catalogue/category/books/mystery_3/index.html";
 
-  if (!await page.$(`a[href='${catAttr}']`)) {
+  if (!(await page.$(`a[href='${catAttr}']`))) {
     counter++;
-    if(counter < 3) {
-    console.log(`can\'t find category selector... Running retry number:${counter}`);
-    await wait(1000)
-    await clickCategory(page)
-  } else {
-    console.log(('Unable to find category selector... Moving on.'));
-  }
-  return;
+    if (counter < 3) {
+      console.log(
+        `can\'t find category selector... Running retry number:${counter}`
+      );
+      await wait(3000);
+      await clickCategory(page);
+    } else {
+      console.log("Unable to find category selector... Moving on.");
+    }
+    return;
   }
   await page.click(`a[href='${catAttr}']`);
-} 
+};
 
-const scrapeData = async (page :any) => {
+const scrapeData = async (page: any) => {
   const $ = cheerio.load(await page.content());
-  if(!await page.$('ol.row li')) {
+  if (!(await page.$("ol.row li"))) {
     counter++;
-    console.log(`can't find the scrapeData selector... Running retry number: ${counter}`)
-  if(counter < 3) {
-    await wait(2000);
-    await scrapeData(page);
-  }else {
-    console.log('Unable to find scrapeData selector... Moving on.');
-    counter = 0;
+    console.log(
+      `can't find the scrapeData selector... Running retry number: ${counter}`
+    );
+    if (counter < 3) {
+      await wait(2000);
+      await scrapeData(page);
+    } else {
+      console.log("Unable to find scrapeData selector... Moving on.");
+      counter = 0;
+    }
+    return;
   }
-  return;
-}
+  const liTags = $("ol.row li");
+  let booksArr:any [] = [];
+  const baseUrl = "http://books.toscrape.com/";
+  liTags.each((i: any, el: any) => {
+    let imageUrl = $(el).find("img").attr("src");
+    imageUrl = imageUrl.replaceAll("../", "").trim();
+    imageUrl = baseUrl + imageUrl;
+    let starRating = $(el).find("p.star-rating").attr("class");
+    starRating = starRating.replace("star-rating", "").trim();
+    const title = $(el).find("h3").text().trim();
+    const price = $(el).find("p.price_color").text().trim();
+    const availability = $(el).find("p.instock.availability").text().trim();
+    const book = { imageUrl, starRating, title, price, availability };
+    booksArr.push(book); // Use push method to add elements to the array
+    console.log({ imageUrl }, " - ", { starRating });
+  });
+  console.log(booksArr)
+};
 
- const liTags = $('ol.row li');
+const autoScroll = async (page: any) => {
+  await wait(2000);
+  const selector = "li.next";
+  if(!await page.$(selector)) {
+    await wait(2000);
+    if (counter < 3) {
+      counter++;
+      console.log(`can't find the scrapeData selector... Running retry number: ${counter}`);
+      await autoScroll(page);
+      } else {
+        counter = 0;
+        console.log("Unable to find scrapeData selector... Moving on.");
+     }
+      return;
+    }
 
- const baseUrl = 'http://books.toscrape.com/';
- liTags.each((i:any, el:any) =>{
-  let imageUrl = $(el).find('img').attr('src');
-  imageUrl = imageUrl.replaceAll('../','').trim();
-  console.log({imageUrl});
- })
-}
+    await page.evaluate((selector:any) => {
+      const element = document.querySelector(selector)
+      
+    })
+  }
