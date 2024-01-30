@@ -30,15 +30,13 @@ const runScraper = async () => {
   await page.goto(endpoint, { 
     waitUntil: "domcontentloaded",
   });
-
   await wait(1000);
-
-  await clickCategory(page)
+  await clickCategory(page);
+  await wait(1000);
+  await scrapeData(page);
 };
 
-const wait = (ms: any) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const wait = (ms: any) => { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
 const clickCategory = async (page:any) => {
   const catAttr = 'catalogue/category/books/mystery_3/index.html'
@@ -74,8 +72,10 @@ const scrapeData = async (page :any) => {
 
  const liTags = $('ol.row li');
 
+ const baseUrl = 'http://books.toscrape.com/';
  liTags.each((i:any, el:any) =>{
-  const imageUrl = $(el).find('img').attr('src');
+  let imageUrl = $(el).find('img').attr('src');
+  imageUrl = imageUrl.replaceAll('../','').trim();
   console.log({imageUrl});
  })
 }
