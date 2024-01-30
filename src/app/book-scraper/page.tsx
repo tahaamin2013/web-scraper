@@ -45,8 +45,8 @@ const runScraper = async () => {
   }
   await wait(3000);
   await autoScroll(page);
-  await wait(3000);
-  await clickNext(page);
+  // await wait(3000);
+  // await clickNext(page);
   await scrapeData(page);
   }
   console.log('Total number of books scraped:',booksArr.length);
@@ -137,13 +137,9 @@ const autoScroll = async (page: any) => {
   }
 
 
-  const clickNext = async (page: any) => {
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
-      page.click('li.next'),
-    ]);
-  };
-  
+  // const clickNext = async (page: any) => {
+  //  await page.click('li.next')
+  // }
 
   const nextPageBoolean = async (page:any) =>{
     const $= cheerio.load(page.content())
