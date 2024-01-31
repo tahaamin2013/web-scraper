@@ -9,7 +9,7 @@ type WSResults = {
 	imageUrl: string;
 };
 
-const page = () => {
+const pages = () => {
   const [searchPrompt, setSearchPrompt] = useState("");
 	const [searchResults, setSearchResults] = useState<WSResults[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
@@ -83,4 +83,4 @@ const page = () => {
   )
 }
 
-export default page
+export default pages
