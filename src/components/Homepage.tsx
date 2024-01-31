@@ -23,8 +23,11 @@ const Homepage = () => {
     <div className="flex flex-col items-center gap-6">
     <div className="flex flex-col items-center">
   <h1 className="text-[40px] font-bold text-center">Package WebScraper</h1>
-  <p className="text-sm text-gray-800 text-center w-[500px]">Explore real-time download stats. Enter a package name, click "Go," and get quick insights. Simplifying package popularity analysis!</p>
+  <p className="text-sm text-gray-800 text-center w-[500px]">
+    Explore real-time download stats. Enter a package name, click &quot;Go,&quot; and get quick insights. Simplifying package popularity analysis!
+  </p>
 </div>
+
 
 
       <div className="flex flex-col sm:flex-row gap-4 sm:gap-2">
